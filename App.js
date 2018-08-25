@@ -1,6 +1,8 @@
 import React, { Component, Dimensions } from 'react'
 import { StyleSheet, Text, View, FlatList, Image, WebView, Button, RefreshControl } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
+import redditPics from './data/redditPics'
+import FlatListComponent from './components/FlatListComponent'
 import axios from 'axios'
 
 export default class App extends Component {
@@ -14,52 +16,32 @@ export default class App extends Component {
     }
   }
 
-  renderSeparator = () => {
-    return (
-      <View
-        style={{
-          height: 1,
-          width: "86%",
-          backgroundColor: "#CED0CE",
-          marginLeft: "14%"
-        }}
-      />
-    )
+  componentDidMount = async () => {
+    try {
+      await this.redditRequest()
+    }
+    catch (err) {
+      alert(err)
+    }
   }
 
-  redditCall = async () => {
+
+  redditRequest = async () => {
     try {
-      let redditPicsURL = 'https://www.reddit.com/r/pics/new.json'
-      let responseFromReddit = await axios.get(redditPicsURL)
-      let posts = responseFromReddit.data.data.children
-      let cleanResultsArray = []
-      posts.map((post) => {
-          cleanResultsArray.push({
-            'author': post.data.author,
-            'thumbnail': post.data.thumbnail,
-            'title': post.data.title,
-            'date_utc': post.data.created_utc,
-            'score': post.data.score,
-            'num_comments': post.data.num_comments,
-            'permalink': 'https://reddit.com' + post.data.permalink
-          })
-      })
+      let cleanResultsArray = await redditPics.getAndFilterPosts()
       this.setState({
         'posts': cleanResultsArray
       })
     }
     catch (err) {
-      throw(err)
+      alert(err)
     }
   }
 
-  componentDidMount = async () => {
-    try {
-      await this.redditCall()
-    }
-    catch (err) {
-      alert(err)
-    }
+  _onClickClose = (e) => {
+    this.setState({
+      pressed: false
+    })
   }
 
   _onPress = (url) => {
@@ -69,18 +51,11 @@ export default class App extends Component {
     })
   }
 
-  _onClickClose = (e) => {
-    e.preventDefault()
-    this.setState({
-      pressed: false
-    })
-  }
-
   handleRefresh = () => {
     this.setState({
       refreshing: true
     }, async () => {
-      await this.redditCall()
+      await this.redditRequest()
       this.setState({
         refreshing: false
       })
@@ -99,38 +74,13 @@ export default class App extends Component {
     let WEBVIEW_REF = 'webview1'
     if (!this.state.pressed) {
       return (
-        <List>
-        <FlatList
-          data={this.state.posts}
-          styles={{ flex: 1, marginTop: 20 }}
+        <FlatListComponent
+          posts={this.state.posts}
           extraData={this.state}
-          renderItem={({ item }) =>
-            <ListItem
-              title={item.title}
-              subtitle={
-                <View style={styles.subtitleView}>
-                  <Text style={styles.info}>Score: {item.score}</Text>
-                  <Text style={styles.info}>Comments: {item.num_comments}</Text>
-                  <Text style={styles.info}>{item.date_utc}</Text>
-                </View>
-              }
-              avatar={
-                <Image source={{ uri: item.thumbnail }} style={{ height: 100, width: 100 }}></Image>
-              }
-              onPress={() => this._onPress(item.permalink)}
-            />
-          }
-          keyExtractor={(item, index) => item.permalink}
-          ItemSeparatorComponent={this.renderSeparator}
-          ListHeaderComponent={this.renderHeader}
-          refreshControl={
-            <RefreshControl
-              refreshing={this.state.refreshing}
-              onRefresh={this.handleRefresh}
-            />
-          }
+          refreshing={this.state.refreshing}
+          onRefresh={this.handleRefresh}
+          onPress={this._onPress}
         />
-        </List>
       )
     }
     else {
@@ -166,16 +116,5 @@ const styles = StyleSheet.create({
   avatar: {
     height: 100,
     width: 100
-  },
-  header: {
-    padding: 7,
-    backgroundColor: '#841584',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  headerText: {
-    fontSize: 25,
-    fontWeight: 'bold',
-    color: '#FFF9FB'
   }
 });
