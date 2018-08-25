@@ -4,13 +4,23 @@ import { List, ListItem } from 'react-native-elements'
 
 export default class FlatListComponent extends Component {
 
+    constructor() {
+        super()
+
+        this.state = {
+            refreshing: false,
+            pressed: false,
+            pressedPostURL: ''
+        }
+    }
+
     renderHeader = () => {
         return (
-          <View style={styles.header}>
-            <Text style={styles.headerText}>r/Pics</Text>
-          </View>
+            <View style={styles.header}>
+                <Text style={styles.headerText}>r/Pics</Text>
+            </View>
         )
-      }
+    }
 
     renderSeparator = () => {
         return (
@@ -23,6 +33,17 @@ export default class FlatListComponent extends Component {
                 }}
             />
         )
+    }
+
+    handleRefresh = () => {
+        this.setState({
+            refreshing: true
+        }, async () => {
+            await this.props.redditRequest()
+            this.setState({
+                refreshing: false
+            })
+        })
     }
 
     render() {
@@ -45,7 +66,7 @@ export default class FlatListComponent extends Component {
                             avatar={
                                 <Image source={{ uri: item.thumbnail }} style={{ height: 100, width: 100 }}></Image>
                             }
-                            onPress={() => this.props.onPress(item.permalink)}
+                            onPress={() => this.props.onPressPost(item.permalink)}
                         />
                     }
                     keyExtractor={(item, index) => item.permalink}
@@ -53,8 +74,8 @@ export default class FlatListComponent extends Component {
                     ListHeaderComponent={this.renderHeader}
                     refreshControl={
                         <RefreshControl
-                            refreshing={this.props.refreshing}
-                            onRefresh={this.props.handleRefresh}
+                            refreshing={this.state.refreshing}
+                            onRefresh={this.handleRefresh}
                         />
                     }
                 />
@@ -77,10 +98,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#841584',
         alignItems: 'center',
         justifyContent: 'center'
-      },
-      headerText: {
+    },
+    headerText: {
         fontSize: 25,
         fontWeight: 'bold',
         color: '#FFF9FB'
-      }
+    }
 })

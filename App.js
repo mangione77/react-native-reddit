@@ -3,16 +3,14 @@ import { StyleSheet, Text, View, FlatList, Image, WebView, Button, RefreshContro
 import { List, ListItem } from 'react-native-elements'
 import redditPics from './data/redditPics'
 import FlatListComponent from './components/FlatListComponent'
+import WebViewWithButton from './components/WebViewWithButton'
 import axios from 'axios'
 
 export default class App extends Component {
   constructor() {
     super()
     this.state = {
-      'posts': [],
-      'pressed': false,
-      'pressedPostURL': '',
-      'refreshing': false
+      'posts': []
     }
   }
 
@@ -24,7 +22,6 @@ export default class App extends Component {
       alert(err)
     }
   }
-
 
   redditRequest = async () => {
     try {
@@ -38,36 +35,17 @@ export default class App extends Component {
     }
   }
 
-  _onClickClose = (e) => {
-    this.setState({
-      pressed: false
-    })
-  }
-
-  _onPress = (url) => {
+  onPressPost = (url) => {
     this.setState({
       pressedPostURL: url,
       pressed: true
     })
   }
 
-  handleRefresh = () => {
+  onPressClose = (e) => {
     this.setState({
-      refreshing: true
-    }, async () => {
-      await this.redditRequest()
-      this.setState({
-        refreshing: false
-      })
+      pressed: false
     })
-  }
-
-  renderHeader = () => {
-    return (
-      <View style={styles.header}>
-        <Text style={styles.headerText}>r/Pics</Text>
-      </View>
-    )
   }
 
   render() {
@@ -77,22 +55,20 @@ export default class App extends Component {
         <FlatListComponent
           posts={this.state.posts}
           extraData={this.state}
-          refreshing={this.state.refreshing}
-          onRefresh={this.handleRefresh}
-          onPress={this._onPress}
+          redditRequest={this.redditRequest}
+          onPressPost={this.onPressPost}
         />
       )
     }
     else {
       return (
-        <View style={{ flex: 1, marginTop: 20 }}>
-          <Button onPress={this._onClickClose} title="Back to the app!" color="#841584" />
-          <WebView
-            source={{ uri: this.state.pressedPostURL }}
-            style={{ marginTop: 20 }}
-            ref={WEBVIEW_REF}
-          />
-        </View>
+        <WebViewWithButton
+          reference={WEBVIEW_REF}
+          postURL={this.state.pressedPostURL}
+          title={'Back to the App!'}
+          color={'#841584'}
+          onPressClose={this.onPressClose}
+        />
       )
     }
   }
