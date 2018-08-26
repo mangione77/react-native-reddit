@@ -1,16 +1,18 @@
 import React, { Component, Dimensions } from 'react'
-import { StyleSheet, Text, View, FlatList, Image, WebView, Button, RefreshControl } from 'react-native'
+import { StyleSheet, Text, View, FlatList, Image, WebView, Button, RefreshControl, Picker } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import redditPics from './data/redditPics'
 import FlatListComponent from './components/FlatListComponent'
 import WebViewWithButton from './components/WebViewWithButton'
-import axios from 'axios'
 
 export default class App extends Component {
   constructor() {
     super()
     this.state = {
-      'posts': []
+      'posts': [],
+      'pressed': false,
+      'pressedPostURL': '',
+      'selectedType': ''
     }
   }
 
@@ -23,9 +25,10 @@ export default class App extends Component {
     }
   }
 
-  redditRequest = async () => {
+  redditRequest = async (category) => {
     try {
-      let cleanResultsArray = await redditPics.getAndFilterPosts()
+      category = category ? category : 'hot'
+      let cleanResultsArray = await redditPics.getAndFilterPosts(category)
       this.setState({
         'posts': cleanResultsArray
       })
@@ -48,16 +51,28 @@ export default class App extends Component {
     })
   }
 
+  updateCategory = (category) => {
+    this.setState({
+      selectedType: category
+    }, async () => {
+      await this.redditRequest(category)
+    })
+  } 
+
   render() {
     let WEBVIEW_REF = 'webview1'
     if (!this.state.pressed) {
       return (
-        <FlatListComponent
-          posts={this.state.posts}
-          extraData={this.state}
-          redditRequest={this.redditRequest}
-          onPressPost={this.onPressPost}
-        />
+        <View style={styles.container}>
+          <FlatListComponent
+            posts={this.state.posts}
+            extraData={this.state}
+            redditRequest={this.redditRequest}
+            onPressPost={this.onPressPost}
+            onSelectType={this.updateCategory}
+            selectedType={this.state.selectedType ? this.state.selectedType : 'hot'}
+          />
+        </View>
       )
     }
     else {
@@ -66,7 +81,7 @@ export default class App extends Component {
           reference={WEBVIEW_REF}
           postURL={this.state.pressedPostURL}
           title={'Back to the App!'}
-          color={'#841584'}
+          color={'#ff4949'}
           onPressClose={this.onPressClose}
         />
       )
@@ -78,8 +93,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    marginTop: 25,
-    padding: 10
   },
   subtitleView: {
     flexDirection: 'row',

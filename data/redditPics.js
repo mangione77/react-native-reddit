@@ -3,10 +3,10 @@ import cleanPosts from '../helpers/cleanPosts'
 
 const redditPics = () => {
 
-    let baseURL = 'https://www.reddit.com/r/pics/new.json'
 
-    let getAndFilterPosts = async () => {
+    let getAndFilterPosts = async (category) => {
         try {
+            let baseURL = `https://www.reddit.com/r/pics/${category}.json`
             let responseFromReddit = await axios.get(baseURL)
             let posts = responseFromReddit.data.data.children
             let cleanResults = cleanPosts(posts)

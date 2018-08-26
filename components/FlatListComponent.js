@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FlatList, StyleSheet, RefreshControl, View, Text, Image } from 'react-native'
+import { FlatList, StyleSheet, RefreshControl, View, Text, Image, Picker } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 
 export default class FlatListComponent extends Component {
@@ -18,6 +18,16 @@ export default class FlatListComponent extends Component {
         return (
             <View style={styles.header}>
                 <Text style={styles.headerText}>r/Pics</Text>
+                <Picker
+                    selectedValue={this.props.selectedType}
+                    style={{ height: 30, width: 100 }}
+                    onValueChange={(itemValue, itemIndex) => this.props.onSelectType(itemValue) }>
+                    <Picker.Item label="Hot" value="hot" />
+                    <Picker.Item label="New" value="new" />
+                    <Picker.Item label="Controversial" value="controversial" />
+                    <Picker.Item label="Top" value="top" />
+                    <Picker.Item label="Rising" value="rising" />
+                </Picker >
             </View>
         )
     }
@@ -48,10 +58,13 @@ export default class FlatListComponent extends Component {
 
     render() {
         return (
-            <List>
+            <List
+                containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}
+            >
                 <FlatList
                     data={this.props.posts}
                     styles={{ flex: 1, marginTop: 20 }}
+                    containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}
                     extraData={this.props}
                     renderItem={({ item }) =>
                         <ListItem
@@ -95,7 +108,7 @@ const styles = StyleSheet.create({
     },
     header: {
         padding: 7,
-        backgroundColor: '#841584',
+        backgroundColor: '#ff4949',
         alignItems: 'center',
         justifyContent: 'center'
     },
