@@ -1,6 +1,5 @@
-import React, { Component, Dimensions } from 'react'
-import { StyleSheet, Text, View, FlatList, Image, WebView, Button, RefreshControl, Picker } from 'react-native'
-import { List, ListItem } from 'react-native-elements'
+import React, { Component } from 'react'
+import { StyleSheet, View } from 'react-native'
 import redditPics from './data/redditPics'
 import FlatListComponent from './components/FlatListComponent'
 import WebViewWithButton from './components/WebViewWithButton'
@@ -9,10 +8,10 @@ export default class App extends Component {
   constructor() {
     super()
     this.state = {
+      'selectedCategory': '',
       'posts': [],
-      'pressed': false,
-      'pressedPostURL': '',
-      'selectedType': ''
+      'shouldOpenWebView': false,
+      'pressedPostURL': ''
     }
   }
 
@@ -41,36 +40,34 @@ export default class App extends Component {
   onPressPost = (url) => {
     this.setState({
       pressedPostURL: url,
-      pressed: true
+      shouldOpenWebView: true
     })
   }
 
   onPressClose = (e) => {
     this.setState({
-      pressed: false
+      shouldOpenWebView: false
     })
   }
 
   updateCategory = (category) => {
     this.setState({
-      selectedType: category
+      selectedCategory: category
     }, async () => {
       await this.redditRequest(category)
     })
   } 
 
   render() {
-    let WEBVIEW_REF = 'webview1'
-    if (!this.state.pressed) {
+    if (!this.state.shouldOpenWebView) {
       return (
         <View style={styles.container}>
           <FlatListComponent
             posts={this.state.posts}
-            extraData={this.state}
             redditRequest={this.redditRequest}
             onPressPost={this.onPressPost}
-            onSelectType={this.updateCategory}
-            selectedType={this.state.selectedType ? this.state.selectedType : 'hot'}
+            onSelectCategory={this.updateCategory}
+            selectedCategory={this.state.selectedCategory ? this.state.selectedCategory : 'hot'}
           />
         </View>
       )
@@ -78,7 +75,6 @@ export default class App extends Component {
     else {
       return (
         <WebViewWithButton
-          reference={WEBVIEW_REF}
           postURL={this.state.pressedPostURL}
           title={'Back to the App!'}
           color={'#ff4949'}

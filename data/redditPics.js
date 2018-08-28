@@ -1,10 +1,9 @@
 import axios from 'axios'
 import cleanPosts from '../helpers/cleanPosts'
 
-const redditPics = () => {
+const redditPics = (category) => {
 
-
-    let getAndFilterPosts = async (category) => {
+    const getAndFilterPosts = async (category) => {
         try {
             let baseURL = `https://www.reddit.com/r/pics/${category}.json`
             let responseFromReddit = await axios.get(baseURL)
@@ -13,13 +12,19 @@ const redditPics = () => {
             return cleanResults
         }
         catch (err) {
-            throw (err)
+            if (err.code === 'ENOTFOUND') {
+                throw('Your device is not connected. Try again later.')
+            }
+            else {
+                throw (err)
+            }
         }
     }
 
     return {
         getAndFilterPosts
     }
+
 }
 
 export default redditPics()

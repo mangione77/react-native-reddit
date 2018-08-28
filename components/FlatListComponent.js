@@ -19,9 +19,9 @@ export default class FlatListComponent extends Component {
             <View style={styles.header}>
                 <Text style={styles.headerText}>r/Pics</Text>
                 <Picker
-                    selectedValue={this.props.selectedType}
-                    style={{ height: 30, width: 100 }}
-                    onValueChange={(itemValue, itemIndex) => this.props.onSelectType(itemValue) }>
+                    selectedValue={this.props.selectedCategory}
+                    style={styles.picker}
+                    onValueChange={(itemValue, itemIndex) => this.props.onSelectCategory(itemValue) }>
                     <Picker.Item label="Hot" value="hot" />
                     <Picker.Item label="New" value="new" />
                     <Picker.Item label="Controversial" value="controversial" />
@@ -35,12 +35,7 @@ export default class FlatListComponent extends Component {
     renderSeparator = () => {
         return (
             <View
-                style={{
-                    height: 1,
-                    width: "86%",
-                    backgroundColor: "#CED0CE",
-                    marginLeft: "14%"
-                }}
+                style={styles.separator}
             />
         )
     }
@@ -49,7 +44,7 @@ export default class FlatListComponent extends Component {
         this.setState({
             refreshing: true
         }, async () => {
-            await this.props.redditRequest()
+            await this.props.redditRequest(this.props.selectedCategory)
             this.setState({
                 refreshing: false
             })
@@ -59,25 +54,38 @@ export default class FlatListComponent extends Component {
     render() {
         return (
             <List
-                containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}
+                containerStyle={styles.noTopBottomBorder}
             >
                 <FlatList
                     data={this.props.posts}
-                    styles={{ flex: 1, marginTop: 20 }}
-                    containerStyle={{ borderTopWidth: 0, borderBottomWidth: 0 }}
+                    styles={styles.flatList}
+                    containerStyle={styles.noTopBottomBorder}
                     extraData={this.props}
                     renderItem={({ item }) =>
                         <ListItem
-                            title={item.title}
+                            title={
+                                <View style={styles.postHeader}>
+                                <Text style={styles.date}>{item.date_utc}</Text>
+                                <Text style={styles.postTitle}>{item.title}</Text>
+                                </View>
+                            }
                             subtitle={
                                 <View style={styles.subtitleView}>
-                                    <Text style={styles.info}>Score: {item.score}</Text>
-                                    <Text style={styles.info}>Comments: {item.num_comments}</Text>
-                                    <Text style={styles.info}>{item.date_utc}</Text>
+                                    <View style={styles.subtitleElement}>
+                                    <Text adjustFontSizeToFit={true} style={styles.info}>{item.author}</Text>
+                                    </View>
+                                    <View adjustFontSizeToFit style={styles.subtitleElement}>
+                                    <Text adjustFontSizeToFit={true} style={styles.info}>Score: {item.score}</Text>
+                                    </View>
+                                    <View style={styles.subtitleElement}>
+                                    <Text adjustFontSizeToFit={true} style={styles.info}>Comments: {item.num_comments}</Text>
+                                    </View>
                                 </View>
                             }
                             avatar={
-                                <Image source={{ uri: item.thumbnail }} style={{ height: 100, width: 100 }}></Image>
+                                item.thumbnail !== 'self'
+                                ? <Image source={{ uri: item.thumbnail }} style={styles.thumbnail}></Image>
+                                : <Image source={{ uri: 'https://via.placeholder.com/100x100'}} style={styles.thumbnail}></Image>
                             }
                             onPress={() => this.props.onPressPost(item.permalink)}
                         />
@@ -98,13 +106,43 @@ export default class FlatListComponent extends Component {
 }
 
 const styles = StyleSheet.create({
+    noTopBottomBorder: {
+        borderTopWidth: 0,
+        borderBottomWidth: 0
+    },
+    flatList: {
+        flex: 1,
+        marginTop: 20
+    },
     subtitleView: {
         flexDirection: 'row',
     },
+    thumbnail: {
+        height: 100,
+        width: 100
+    },
+    separator: {
+        height: 1,
+        width: "86%",
+        backgroundColor: "#CED0CE",
+        marginLeft: "14%"
+    },
+    subtitleElement: {
+        paddingRight: 5, 
+        marginTop: 5,
+        marginBottom: 5,
+        marginRight: 5, 
+        alignItems: 'center', 
+        justifyContent: 'center'
+    },
+    picker: {
+        height: 30,
+        width: 100
+    }, 
     info: {
-        paddingLeft: 10,
         color: 'grey',
-        fontSize: 10
+        fontSize: 10,
+        paddingLeft: 10
     },
     header: {
         padding: 7,
@@ -116,5 +154,16 @@ const styles = StyleSheet.create({
         fontSize: 25,
         fontWeight: 'bold',
         color: '#FFF9FB'
+    },
+    postHeader: {
+        justifyContent: 'center'
+    },
+    postTitle: {
+        paddingLeft: 10,
+    },
+    date: {
+        fontSize: 10,
+        fontStyle: 'italic',
+        paddingLeft: 10
     }
 })
